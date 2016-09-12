@@ -1,8 +1,13 @@
 box: golang
 build:
   steps:
-    # golint step!
-    - wercker/golint
+    - setup-go-workspace
+    
+    # Get the dependency tree
+    - script:
+        name: go get
+        code: |
+          go get
 
     # Build the project
     - script:
