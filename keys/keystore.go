@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/user"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 const (
@@ -219,6 +223,44 @@ func (store *Keystore) String(prefix string, usernames ...string) string {
 	}
 
 	return digest
+}
+
+func PublicKeyIsAuthorized(key ssh.PublicKey) (bool, error) {
+	auth := bytes.TrimSpace(ssh.MarshalAuthorizedKey(key))
+	content, err := ioutil.ReadFile(expand(authorizedFile))
+	if err != nil {
+		return false, fmt.Errorf("Authorized key file could not be found at %s", authorizedFile)
+	}
+
+	if bytes.Index(content, auth) == -1 {
+		return false, fmt.Errorf("Public key is not authorized")
+	}
+
+	return true, nil
+}
+
+func PublicKeyFile(path string) ssh.AuthMethod {
+	buffer, err := ioutil.ReadFile(expand(path))
+	if err != nil {
+		return nil
+	}
+
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		return nil
+	}
+
+	return ssh.PublicKeys(key)
+}
+
+// ParsePrivateKey returns a Signer from a PEM encoded private key. It supports
+// the same keys as ParseRawPrivateKey.
+func SSHAgent() ssh.AuthMethod {
+	if sshAgent, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK")); err == nil {
+		return ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+	}
+
+	return nil
 }
 
 func contains(arr []string, text string) bool {
