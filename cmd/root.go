@@ -32,7 +32,7 @@ func init() {
 	joinCmd.Flags().StringVar(&privateKey, "private-key", "~/.ssh/id_rsa", "")
 	joinCmd.Flags().StringVar(&router, "router", "mux.revolvingcow.com:443", "")
 	routerCmd.Flags().StringVar(&hostKey, "host-key", "~/.ssh/pair", "Path to the host private key")
-	routerCmd.Flags().IntVar(&localPort, "port", 0, "Port for the router to listen on. Zero (0) for random.")
+	routerCmd.Flags().IntVar(&localPort, "port", 443, "Port for the router to listen on. Zero (0) for random.")
 
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(addCmd)

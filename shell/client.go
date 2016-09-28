@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
 	"strings"
 
 	"github.com/gooops/easyssh"
-	"github.com/revolvingcow/pair/keys"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func Client(room, privateKey, address, port string) {
@@ -44,85 +43,95 @@ func Client(room, privateKey, address, port string) {
 	if forward == "" {
 		log.Fatal("No hosted session for pairing found")
 	} else {
-		forward = strings.Replace(forward, "localhost", address, 1)
-		forward = strings.Replace(forward, "[::]", address, 1)
+		// forward = strings.Replace(forward, "localhost", address, 1)
+		// forward = strings.Replace(forward, "[::]", address, 1)
+
+		forward = forward[strings.LastIndex(forward, ":")+1:]
 	}
 
-	// Redeclare our connection settings
-	config = &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{},
+	cmd := exec.Command("ssh", "-p", forward, fmt.Sprintf("%s@%s", username, address))
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	if err = cmd.Run(); err != nil {
+		log.Println(err)
 	}
 
-	// Check to see if we can use the private key
-	if authKey := keys.PublicKeyFile(privateKey); authKey != nil {
-		log.Println("Enabling use of private key", privateKey)
-		config.Auth = append(config.Auth, authKey)
-	}
+	// // Redeclare our connection settings
+	// config = &ssh.ClientConfig{
+	// 	User: username,
+	// 	Auth: []ssh.AuthMethod{},
+	// }
 
-	// Check if they have a secure agent
-	if authAgent := keys.SSHAgent(); authAgent != nil {
-		log.Println("Enabling use of SSH agent")
-		config.Auth = append(config.Auth, authAgent)
-	}
+	// // Check to see if we can use the private key
+	// if authKey := keys.PublicKeyFile(privateKey); authKey != nil {
+	// 	log.Println("Enabling use of private key", privateKey)
+	// 	config.Auth = append(config.Auth, authKey)
+	// }
 
-	// Connect to the remote server
-	log.Println("Joining session for", room)
-	conn, err = easyssh.Dial("tcp", forward, config)
-	if err != nil {
-		log.Fatalf("Unable to connect: %s", err)
-	}
-	defer conn.Close()
+	// // Check if they have a secure agent
+	// if authAgent := keys.SSHAgent(); authAgent != nil {
+	// 	log.Println("Enabling use of SSH agent")
+	// 	config.Auth = append(config.Auth, authAgent)
+	// }
 
-	// Resize terminal so it displays things nicely
-	fd := int(os.Stdin.Fd())
-	oldState, err := terminal.MakeRaw(fd)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// // Connect to the remote server
+	// log.Println("Joining session for", room)
+	// conn, err = easyssh.Dial("tcp", forward, config)
+	// if err != nil {
+	// 	log.Fatalf("Unable to connect: %s", err)
+	// }
+	// defer conn.Close()
 
-	// Create a new SSH session
-	session, err := conn.NewSession()
-	if err != nil {
-		log.Fatalf("Could not create new session: %s", err)
-	}
+	// // Resize terminal so it displays things nicely
+	// fd := int(os.Stdin.Fd())
+	// oldState, err := terminal.MakeRaw(fd)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	// Some finalization stuff when we return to our local shell
-	finalize := func() {
-		session.Close()
-		terminal.Restore(fd, oldState)
-	}
-	defer finalize()
+	// // Create a new SSH session
+	// session, err := conn.NewSession()
+	// if err != nil {
+	// 	log.Fatalf("Could not create new session: %s", err)
+	// }
 
-	// Set up I/O
-	session.Stderr = os.Stderr
-	session.Stdout = os.Stdout
-	session.Stdin = os.Stdin
+	// // Some finalization stuff when we return to our local shell
+	// finalize := func() {
+	// 	session.Close()
+	// 	terminal.Restore(fd, oldState)
+	// }
+	// defer finalize()
 
-	// Get the terminal height and width
-	termWidth, termHeight, err := terminal.GetSize(fd)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// // Set up I/O
+	// session.Stderr = os.Stderr
+	// session.Stdout = os.Stdout
+	// session.Stdin = os.Stdin
 
-	// Some terminal mode configuration
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
-	}
+	// // Get the terminal height and width
+	// termWidth, termHeight, err := terminal.GetSize(fd)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	// Request a pseudo terminal
-	if err := session.RequestPty("xterm-256color", termHeight, termWidth, modes); err != nil {
-		log.Fatalf("Request for a pseudo terminal failed: %s", err)
-	}
+	// // Some terminal mode configuration
+	// modes := ssh.TerminalModes{
+	// 	ssh.ECHO:          1,
+	// 	ssh.TTY_OP_ISPEED: 14400,
+	// 	ssh.TTY_OP_OSPEED: 14400,
+	// }
 
-	// Launch a login shell
-	if err := session.Shell(); err != nil {
-		log.Fatalf("Could not start shell: %s", err)
-	}
+	// // Request a pseudo terminal
+	// if err := session.RequestPty("xterm-256color", termHeight, termWidth, modes); err != nil {
+	// 	log.Fatalf("Request for a pseudo terminal failed: %s", err)
+	// }
 
-	// Wait for an exit from the shell
-	_ = session.Wait()
+	// // Launch a login shell
+	// if err := session.Shell(); err != nil {
+	// 	log.Fatalf("Could not start shell: %s", err)
+	// }
+
+	// // Wait for an exit from the shell
+	// _ = session.Wait()
 	log.Println("Connection closed")
 }
