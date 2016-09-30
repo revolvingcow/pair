@@ -3,10 +3,11 @@ package shell
 import (
 	"fmt"
 	"log"
-	"net"
 
-	"github.com/gooops/easyssh"
+	"dev.justinjudd.org/justin/easyssh"
+
 	"github.com/revolvingcow/pair/keys"
+
 	"golang.org/x/crypto/ssh"
 )
 
@@ -43,30 +44,15 @@ func Daemon(hostKey string, ch chan int) {
 	// Attempt to start the daemon on a random port
 	for attempts := 10; attempts > 0; attempts-- {
 		localPort := 1024 + portRandomizer.Intn(60000)
+
 		server := easyssh.Server{
 			Addr:    fmt.Sprintf("%s:%d", "", localPort),
 			Config:  config,
 			Handler: handler,
 		}
 
-		// NOTE: Taken from easyssh/server.go#ListenAndServe()
-		addr := server.Addr
-		if addr == "" {
-			addr = ":ssh"
-		}
-
-		ln, err := net.Listen("tcp", addr)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-
 		ch <- localPort
-		err = server.Serve(ln.(*net.TCPListener))
-		if err != nil {
-			log.Printf("Error: %s", err)
-			continue
-		}
-
+		_ = server.ListenAndServe()
 		break
 	}
 }

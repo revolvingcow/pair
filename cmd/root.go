@@ -7,7 +7,7 @@ var (
 	GenerateDocumentation bool
 
 	// Command is a custom command to be executed upon connection
-	Command string
+	command string
 
 	hostKey    string
 	local      string
@@ -18,21 +18,21 @@ var (
 
 const (
 	// AppVersion is the applications current version
-	AppVersion = "0.0.1"
+	AppVersion = "0.0.2"
 )
 
 func init() {
 	RootCmd.Flags().BoolVar(&GenerateDocumentation, "doc", false, "Generate documentation for all commands")
 
-	addCmd.Flags().StringVarP(&Command, "command", "c", "", "Custom command to be executed upon connection")
-	syncCmd.Flags().StringVarP(&Command, "command", "c", "", "Custom command to be executed upon connection")
+	addCmd.Flags().StringVarP(&command, "command", "c", "", "Custom command to be executed upon connection")
+	syncCmd.Flags().StringVarP(&command, "command", "c", "", "Custom command to be executed upon connection")
 	hostCmd.Flags().StringVar(&local, "local", "localhost", "")
-	hostCmd.Flags().StringVar(&router, "router", "mux.revolvingcow.com:443", "")
+	hostCmd.Flags().StringVar(&router, "mux", "mux.revolvingcow.com:443", "")
 	hostCmd.Flags().StringVar(&privateKey, "private-key", "~/.ssh/id_rsa", "")
 	joinCmd.Flags().StringVar(&privateKey, "private-key", "~/.ssh/id_rsa", "")
-	joinCmd.Flags().StringVar(&router, "router", "mux.revolvingcow.com:443", "")
+	joinCmd.Flags().StringVar(&router, "mux", "mux.revolvingcow.com:443", "")
 	routerCmd.Flags().StringVar(&hostKey, "host-key", "~/.ssh/pair", "Path to the host private key")
-	routerCmd.Flags().IntVar(&localPort, "port", 443, "Port for the router to listen on. Zero (0) for random.")
+	routerCmd.Flags().IntVar(&localPort, "port", 443, "Port to listen on. Zero (0) for random.")
 
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(addCmd)

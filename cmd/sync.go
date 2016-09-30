@@ -13,7 +13,7 @@ var syncCmd = &cobra.Command{
 	Long:  `Synchronize user(s) authorized public keys from popular external sources (Github and Gitlab).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		store := keys.NewKeystore()
-		store.Sync(Command, args...)
+		store.Sync(command, args...)
 		store.Save()
 		fmt.Println(store.String("* ", args...))
 	},

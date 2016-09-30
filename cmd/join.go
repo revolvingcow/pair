@@ -11,7 +11,7 @@ import (
 var joinCmd = &cobra.Command{
 	Use:   "with [url to Git service]/[username]",
 	Short: "Join a hosted pairing session",
-	Long:  ``,
+	Long:  `Join a registered pairing session over an SSH connection`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			log.Fatalf("No room found")

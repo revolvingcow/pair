@@ -1,14 +1,14 @@
-## pair list
+## pair version
 
-List user(s) and their authorized public keys
+Displays the current version
 
 ### Synopsis
 
 
-List will display all, or some, of the public keys and the associated user.
+The application version
 
 ```
-pair list [username...]
+pair version
 ```
 
 ### SEE ALSO

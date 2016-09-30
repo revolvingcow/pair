@@ -9,7 +9,7 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Displays the current version",
-	Long:  ``,
+	Long:  `The application version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("v%s\n", AppVersion)
 	},

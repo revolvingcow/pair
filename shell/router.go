@@ -2,15 +2,17 @@ package shell
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/gooops/easyssh"
-	proxy "github.com/jpillora/go-tcp-proxy"
+	"dev.justinjudd.org/justin/easyssh"
+
 	"github.com/revolvingcow/pair/keys"
 	"github.com/revolvingcow/pair/store"
+
 	"golang.org/x/crypto/ssh"
 )
 
@@ -89,8 +91,6 @@ func (l *proxyLogger) Warn(f string, args ...interface{}) {
 
 func setupProxy(c ssh.ConnMetadata, pass []byte, hostKey string) (*ssh.Permissions, error) {
 	user := c.User()
-	log.Printf("Room: %s\n", user)
-
 	room := &store.Room{Name: user}
 	if err := room.Get(); err != nil || room == nil {
 		room.Name = user
@@ -99,14 +99,11 @@ func setupProxy(c ssh.ConnMetadata, pass []byte, hostKey string) (*ssh.Permissio
 		room.Touched = time.Now()
 	}
 
-	connid := uint64(0)
-	unwrapTLS := false
-
 	for attempts := 10; attempts > 0; attempts-- {
 		port := 1024 + portRandomizer.Intn(60000)
 		room.LocalAddress = fmt.Sprintf("[::]:%d", port)
 
-		local, err := net.ResolveTCPAddr("tcp", room.LocalAddress)
+		localAddress, err := net.ResolveTCPAddr("tcp", room.LocalAddress)
 		if err != nil {
 			log.Println("Error connecting to local address:", err)
 			continue
@@ -120,13 +117,13 @@ func setupProxy(c ssh.ConnMetadata, pass []byte, hostKey string) (*ssh.Permissio
 			room.RemoteAddress = fmt.Sprintf("%s:%s", room.RemoteAddress[:idx], string(pass))
 		}
 
-		remote, err := net.ResolveTCPAddr("tcp", room.RemoteAddress)
+		remoteAddress, err := net.ResolveTCPAddr("tcp", room.RemoteAddress)
 		if err != nil {
 			log.Println("Error connecting to remote address:", err)
 			break
 		}
 
-		listener, err := net.ListenTCP("tcp", local)
+		listener, err := net.ListenTCP("tcp", localAddress)
 		if err != nil {
 			log.Println("Error listening on:", err)
 			break
@@ -141,22 +138,50 @@ func setupProxy(c ssh.ConnMetadata, pass []byte, hostKey string) (*ssh.Permissio
 				log.Println("Warning listening on:", err)
 				continue
 			}
-			connid++
 
-			var p *proxy.Proxy
-			if unwrapTLS {
-				p = proxy.NewTLSUnwrapped(conn, local, remote, room.RemoteAddress)
-			} else {
-				p = proxy.New(conn, local, remote)
+			conn2, err := net.DialTCP("tcp", nil, remoteAddress)
+			if err != nil {
+				log.Println("Warning dialing remote:", err)
+				continue
 			}
 
-			p.Log = &proxyLogger{
-				room: room,
-			}
-
-			go p.Start()
+			go proxy(conn2, conn)
 		}
 	}
 
 	return nil, nil
+}
+
+func proxy(remote, local *net.TCPConn) {
+	remoteClosed := make(chan struct{}, 1)
+	localClosed := make(chan struct{}, 1)
+
+	go broker(remote, local, localClosed)
+	go broker(local, remote, remoteClosed)
+
+	// var waitFor chan struct{}
+	// select {
+	// case <-localClosed:
+	// 	remote.SetLinger(8)
+	// 	remote.CloseRead()
+	// 	waitFor = remoteClosed
+
+	// case <-remoteClosed:
+	// 	local.CloseRead()
+	// 	waitFor = localClosed
+	// }
+
+	// <-waitFor
+}
+
+func broker(dst, src net.Conn, srcClosed chan struct{}) {
+	if _, err := io.Copy(dst, src); err != nil {
+		log.Printf("Copy error: %s", err)
+	}
+
+	if err := src.Close(); err != nil {
+		log.Printf("Close error: %s", err)
+	}
+
+	srcClosed <- struct{}{}
 }
