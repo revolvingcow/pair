@@ -310,7 +310,7 @@ func getKeys(username, url, command string) User {
 	defer response.Body.Close()
 
 	contents, err := ioutil.ReadAll(response.Body)
-	if err != nil || bytes.Contains(contents, []byte("DOCTYPE")) {
+	if err != nil || bytes.Contains(contents, []byte("DOCTYPE")) || !bytes.Contains(contents, []byte("ssh-rsa")) {
 		return user
 	}
 
