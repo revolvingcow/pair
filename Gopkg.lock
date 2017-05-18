@@ -1,0 +1,73 @@
+memo = "fdef7b7cdfed53c97b5711408db0815c97f3a8d23e8c5a8781ac9607b2313d76"
+
+[[projects]]
+  branch = "master"
+  name = "dev.justinjudd.org/justin/easyssh"
+  packages = ["."]
+  revision = "a842df2410b5832d40c59638b0a4ebbb927e11bb"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/boltdb/bolt"
+  packages = ["."]
+  revision = "e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/cpuguy83/go-md2man"
+  packages = ["md2man"]
+  revision = "bcc0a711c5e6bbe72c7cb13d81c7109b45267fd2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+
+[[projects]]
+  name = "github.com/kr/pty"
+  packages = ["."]
+  revision = "2c10821df3c3cf905230d078702dfbe9404c9b23"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/russross/blackfriday"
+  packages = ["."]
+  revision = "0ba0f2b6ed7c475a92e4df8641825cb7a11d1fa3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/shurcooL/sanitized_anchor_name"
+  packages = ["."]
+  revision = "541ff5ee47f1dddf6a5281af78307d921524bcb5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/spf13/cobra"
+  packages = [".","doc"]
+  revision = "4cdb38c072b86bf795d2c81de50784d9fdd6eb77"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["curve25519","ed25519","ed25519/internal/edwards25519","ssh","ssh/agent","ssh/terminal"]
+  revision = "0fe963104e9d1877082f8fb38f816fcd97eb1d10"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "e62c3de784db939836898e5c19ffd41bece347da"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
